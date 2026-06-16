@@ -1,0 +1,6 @@
+{
+  "name": "Ôn tập Tư duy Tính toán",
+  "description": "Ứng dụng trắc nghiệm tương tác giúp ôn luyện ngân hàng câu hỏi môn Tư duy Tính toán với sự hỗ trợ giải thích chi tiết từ AI.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
