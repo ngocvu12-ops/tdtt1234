@@ -1,5 +1,5 @@
 import { Question, Category } from "../types";
-import { quizQuestions } from "./questions";
+import { quizQuestions, getDetailedPythonCategory } from "./questions";
 
 
 export interface PresetExam {
@@ -10,7 +10,7 @@ export interface PresetExam {
   questions: Question[];
 }
 
-export const oetFinalExamCa1: Question[] = [
+const rawOetFinalExamCa1: Question[] = [
   {
     id: 1001,
     category: Category.PYTHON_BASICS,
@@ -671,6 +671,16 @@ export const oetFinalExamCa1: Question[] = [
     explanation: "`map(function, iterable)` duyệt từng hạt tử trong nums truyền làm tham số cho hàm double, chuyển biến đầu ra gom lại. Kết quả biến đổi [1,2,3] thành [2,4,6]."
   }
 ];
+
+export const oetFinalExamCa1: Question[] = rawOetFinalExamCa1.map((q) => {
+  if (q.category === Category.PYTHON_BASICS) {
+    return {
+      ...q,
+      category: getDetailedPythonCategory(q)
+    };
+  }
+  return q;
+});
 
 // Generate a deterministic 100-question pool from oetFinalExamCa1 and classic quizQuestions
 const htmlQuestionBank: Question[] = [

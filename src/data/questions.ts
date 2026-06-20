@@ -4,8 +4,13 @@
  */
 
 import { Question, Category } from "../types";
+import { new100QuizQuestions } from "./newQuestions";
+import { newOet100Questions } from "./newOetQuestions";
+import { th07Questions } from "./th07Questions";
+import { th012th13Questions } from "./th012th13Questions";
+import { moreThQuestions } from "./moreThQuestions";
 
-export const quizQuestions: Question[] = [
+const initialQuestions: Question[] = [
   {
     id: 1,
     category: Category.PYTHON_BASICS,
@@ -2431,3 +2436,290 @@ export const quizQuestions: Question[] = [
     explanation: "Sử dụng os.path.exists() quét nhanh hệ thống quản lý tập tin phần cứng để thẩm tra sự có mặt thực tế của file/thư mục."
   }
 ];
+
+export function getDetailedPythonCategory(q: { questionText: string; codeSnippet?: string; explanation?: string; options?: string[] }): Category {
+  const text = (q.questionText + " " + (q.codeSnippet || "") + " " + (q.explanation || "") + " " + (q.options?.join(" ") || "")).toLowerCase();
+  
+  // 1. Lý thuyết cơ bản về tư duy tính toán
+  if (
+    text.includes("tư duy tính toán") ||
+    text.includes("computational thinking") ||
+    text.includes("decomposition") ||
+    text.includes("phân rã") ||
+    text.includes("pattern recognition") ||
+    text.includes("nhận diện mẫu") ||
+    text.includes("nhận dạng mẫu") ||
+    text.includes("abstraction") ||
+    text.includes("trừu tượng hóa") ||
+    text.includes("algorithm design") ||
+    text.includes("thiết kế thuật toán") ||
+    text.includes("biên dịch") ||
+    text.includes("thông dịch") ||
+    text.includes("máy tính")
+  ) {
+    return Category.PYTHON_THINKING;
+  }
+
+  // 2. AI hỗ trợ lập trình
+  if (
+    text.includes("ai hỗ trợ") ||
+    text.includes("copilot") ||
+    text.includes("chatgpt") ||
+    text.includes("trợ lý") ||
+    text.includes("sinh mã") ||
+    text.includes("gemini") ||
+    text.includes("llm") ||
+    text.includes("prompt") ||
+    text.includes("trí tuệ nhân tạo")
+  ) {
+    return Category.PYTHON_AI;
+  }
+
+  // 3. Thuật toán & Độ phức tạp
+  if (
+    text.includes("độ phức tạp") ||
+    text.includes("complexity") ||
+    text.includes("time complexity") ||
+    text.includes("space complexity") ||
+    text.includes("thuật toán") ||
+    text.includes("algorithm") ||
+    text.includes("sắp xếp") ||
+    text.includes("sorting") ||
+    text.includes("quick sort") ||
+    text.includes("merge sort") ||
+    text.includes("heap sort") ||
+    text.includes("timsort") ||
+    text.includes("stable sort") ||
+    text.includes("bubble sort") ||
+    text.includes("selection sort") ||
+    text.includes("insertion sort") ||
+    text.includes("dijkstra") ||
+    text.includes("tìm kiếm nhị phân") ||
+    text.includes("binary search") ||
+    text.includes("hàng đợi") ||
+    text.includes("queue") ||
+    text.includes("deque") ||
+    text.includes("stack") ||
+    text.includes("overflow") ||
+    text.includes("tháp hà nội") ||
+    text.includes("tower of hanoi") ||
+    text.includes("cây nhị phân") ||
+    text.includes("tree") ||
+    text.includes("bst") ||
+    text.includes("o(1)") ||
+    text.includes("o(n)") ||
+    text.includes("o(log") ||
+    text.includes("o(2^n)") ||
+    text.includes("o(n^2)") ||
+    text.includes("big-o") ||
+    text.includes("big o")
+  ) {
+    return Category.ALGORITHMS;
+  }
+
+  // 4. Đệ quy & Hướng đối tượng (OOP)
+  if (
+    text.includes("class ") ||
+    text.includes("đối tượng") ||
+    text.includes("oop") ||
+    text.includes("đệ quy") ||
+    text.includes("recursion") ||
+    text.includes("recursive") ||
+    text.includes("kế thừa") ||
+    text.includes("inheritance") ||
+    text.includes("mro") ||
+    text.includes("method resolution") ||
+    text.includes("super().__init__") ||
+    text.includes("constructor") ||
+    text.includes("hàm dựng") ||
+    text.includes("hàm hủy") ||
+    text.includes("__init__") ||
+    text.includes("__new__") ||
+    text.includes("__del__") ||
+    text.includes("__slots__") ||
+    text.includes("__eq__") ||
+    text.includes("__call__") ||
+    text.includes("__len__") ||
+    text.includes("__bool__") ||
+    text.includes("name mangling") ||
+    text.includes("classmethod") ||
+    text.includes("staticmethod") ||
+    text.includes("property") ||
+    text.includes("abstractmethod") ||
+    text.includes("isinstance") ||
+    text.includes("hướng đối tượng") ||
+    text.includes("polymorphism") ||
+    text.includes("đa hình") ||
+    text.includes("encapsulation") ||
+    text.includes("đóng gói")
+  ) {
+    return Category.RECURSION_OOP;
+  }
+
+  // 5. Xử lý tệp & Thư viện
+  if (
+    text.includes("tệp") ||
+    text.includes("file") ||
+    text.includes("thư viện") ||
+    text.includes("library") ||
+    text.includes("libraries") ||
+    text.includes("open(") ||
+    text.includes("with open") ||
+    text.includes("write(") ||
+    text.includes("read(") ||
+    text.includes("readline") ||
+    text.includes("readlines") ||
+    text.includes("import os") ||
+    text.includes("import math") ||
+    text.includes("import sys") ||
+    text.includes("import random") ||
+    text.includes("import json") ||
+    text.includes("import copy") ||
+    text.includes("shutil") ||
+    text.includes("csv") ||
+    text.includes("pathlib") ||
+    text.includes("os.path") ||
+    text.includes("pickle") ||
+    text.includes("copy.copy") ||
+    text.includes("copy.deepcopy") ||
+    text.includes("generator") ||
+    text.includes("yield") ||
+    text.includes("deque") ||
+    text.includes("collections") ||
+    text.includes("import ")
+  ) {
+    return Category.FILES_LIBRARIES;
+  }
+
+  // 6. Gỡ lỗi & Kiểm thử
+  if (
+    text.includes("gỡ lỗi") ||
+    text.includes("debugging") ||
+    text.includes("kiểm thử") ||
+    text.includes("testing") ||
+    text.includes("try:") ||
+    text.includes("except") ||
+    text.includes("finally") ||
+    text.includes("unboundlocalerror") ||
+    text.includes("attributeerror") ||
+    text.includes("keyerror") ||
+    text.includes("valueerror") ||
+    text.includes("nameerror") ||
+    text.includes("typeerror") ||
+    text.includes("exception") ||
+    text.includes("raise") ||
+    text.includes("assertion") ||
+    text.includes("assert") ||
+    text.includes("mock") ||
+    text.includes("unittest") ||
+    text.includes("pytest") ||
+    text.includes("bug") ||
+    text.includes("lỗi") ||
+    text.includes("error") ||
+    text.includes("traceback")
+  ) {
+    return Category.DEBUGGING_TESTING;
+  }
+
+  // 7. List, tuple, dictionary, set, slicing
+  if (
+    text.includes("list") ||
+    text.includes("tuple") ||
+    text.includes("dict") ||
+    text.includes("dictionary") ||
+    text.includes("set") ||
+    text.includes("tập hợp") ||
+    text.includes("slicing") ||
+    text.includes("cắt lát") ||
+    text.includes("comprehension") ||
+    text.includes("unpacking") ||
+    text.includes("mảng") ||
+    text.includes("danh sách") ||
+    text.includes("khóa") ||
+    text.includes("hashing") ||
+    text.includes("pop(") ||
+    text.includes("append") ||
+    text.includes("extend") ||
+    text.includes("frozenset") ||
+    text.includes("shallow") ||
+    text.includes("deep copy") ||
+    text.includes("mutable") ||
+    text.includes("khả biến") ||
+    text.includes("bất biến") ||
+    text.includes("interning") ||
+    text.includes("immutable") ||
+    text.includes("s[") ||
+    text.includes("a[") ||
+    text.includes("d[") ||
+    text.includes("matrix")
+  ) {
+    return Category.PYTHON_COLLECTIONS;
+  }
+
+  // 8. Hàm
+  if (
+    text.includes("hàm") ||
+    text.includes("def ") ||
+    text.includes("function") ||
+    text.includes("return") ||
+    text.includes("lambda") ||
+    text.includes("scope") ||
+    text.includes("cục bộ") ||
+    text.includes("toàn cục") ||
+    text.includes("global") ||
+    text.includes("nonlocal") ||
+    text.includes("parameter") ||
+    text.includes("argument") ||
+    text.includes("decorator") ||
+    text.includes("closure")
+  ) {
+    return Category.PYTHON_FUNCTIONS;
+  }
+
+  // 9. Vòng lặp (Loops)
+  if (
+    text.includes("vòng lặp") ||
+    text.includes("loop") ||
+    text.includes("for ") ||
+    text.includes("while") ||
+    text.includes("break") ||
+    text.includes("continue") ||
+    text.includes("range(")
+  ) {
+    return Category.PYTHON_LOOPS;
+  }
+
+  // 10. Câu lệnh điều kiện
+  if (
+    text.includes("if ") ||
+    text.includes("else") ||
+    text.includes("elif") ||
+    text.includes("điều kiện") ||
+    text.includes("rẽ nhánh") ||
+    text.includes("ternary") ||
+    text.includes("so sánh rẽ nhánh")
+  ) {
+    return Category.PYTHON_CONDITIONS;
+  }
+
+  // 11. Toán tử, biểu thức, nhập - xuất (Default fallback)
+  return Category.PYTHON_OPERATORS;
+}
+
+const seenIds = new Set<number>();
+export const quizQuestions: Question[] = [...initialQuestions, ...new100QuizQuestions, ...newOet100Questions, ...th07Questions, ...th012th13Questions, ...moreThQuestions].map((q) => {
+  let mappedId = q.id;
+  while (seenIds.has(mappedId)) {
+    mappedId += 100000;
+  }
+  seenIds.add(mappedId);
+  const qWithUniqueId = { ...q, id: mappedId };
+  if (qWithUniqueId.category === Category.PYTHON_BASICS) {
+    return {
+      ...qWithUniqueId,
+      category: getDetailedPythonCategory(qWithUniqueId)
+    };
+  }
+  return qWithUniqueId;
+});
+

@@ -205,16 +205,6 @@ export default function JupyterCell({
           >
             {copied ? <Check size={14} className="text-emerald-500" /> : <Copy size={14} />}
           </button>
-          
-          {isInteractive && (
-            <button
-              onClick={handleRun}
-              className="p-1 text-slate-500 hover:text-sky-600 hover:bg-sky-50 rounded transition"
-              title="Chạy thử code (Ctrl+Enter)"
-            >
-              <Play size={14} />
-            </button>
-          )}
         </div>
       </div>
 
@@ -247,97 +237,31 @@ export default function JupyterCell({
  * into a series of styled prose texts and code-highlighted Jupyter Cells
  */
 export function parseQuestionText(text: string): QuestionBlock[] {
-  const lines = text.split("\n");
-  const blocks: QuestionBlock[] = [];
-  let currentBlock: { type: "text" | "code"; lines: string[] } | null = null;
-
-  const isCodeLine = (line: string): boolean => {
-    const trimmed = line.trim();
-    if (!trimmed) return false;
-    
-    // Check common python structures
-    if (trimmed.startsWith("def ") || 
-        trimmed.startsWith("class ") || 
-        trimmed.startsWith("if ") || 
-        trimmed.startsWith("elif ") || 
-        trimmed.startsWith("else:") || 
-        trimmed.startsWith("for ") || 
-        trimmed.startsWith("while ") || 
-        trimmed.startsWith("print(") || 
-        trimmed.startsWith("return ") || 
-        trimmed.startsWith("import ") || 
-        trimmed.startsWith("from ") || 
-        trimmed.startsWith("try:") || 
-        trimmed.startsWith("except ") || 
-        trimmed.startsWith("except:") || 
-        trimmed.startsWith("finally:") || 
-        trimmed.startsWith("pass") || 
-        trimmed.startsWith("break") || 
-        trimmed.startsWith("continue") || 
-        trimmed.startsWith("with ") || 
-        trimmed.startsWith("assert ")) {
-      return true;
-    }
-
-    // Has indentation
-    if (line.startsWith(" ") || line.startsWith("\t")) {
-      return true;
-    }
-
-    // Assignment or math comparison operations common to Python code files
-    if (trimmed.includes(" = ") || 
-        trimmed.includes("+=") || 
-        trimmed.includes("-=") || 
-        trimmed.includes("==") || 
-        trimmed.includes(" != ") || 
-        trimmed.endsWith(":")) {
-      return true;
-    }
-
-    return false;
-  };
-
-  for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    const isCode = isCodeLine(line);
-
-    if (line.trim() === "") {
-      if (currentBlock) {
-        currentBlock.lines.push(line);
+  // Check if text has markdown-style triple backticks
+  if (text.includes("```")) {
+    const parts = text.split("```");
+    const blocks: QuestionBlock[] = [];
+    for (let i = 0; i < parts.length; i++) {
+      const part = parts[i];
+      if (i % 2 === 1) {
+        // Code block
+        const cleanCode = part.replace(/^(python|py|javascript|js)?\n/, "");
+        blocks.push({ type: "code", content: cleanCode });
       } else {
-        currentBlock = { type: "text", lines: [line] };
+        // Prose text block
+        blocks.push({ type: "text", content: part });
       }
-      continue;
     }
-
-    const type = isCode ? "code" : "text";
-
-    if (!currentBlock) {
-      currentBlock = { type, lines: [line] };
-    } else if (currentBlock.type === type) {
-      currentBlock.lines.push(line);
-    } else {
-      blocks.push({
-        type: currentBlock.type,
-        content: currentBlock.lines.join("\n")
-      });
-      currentBlock = { type, lines: [line] };
-    }
+    return blocks
+      .map(b => ({
+        type: b.type,
+        content: b.content.trim()
+      }))
+      .filter(b => b.content !== "");
   }
-
-  if (currentBlock) {
-    blocks.push({
-      type: currentBlock.type,
-      content: currentBlock.lines.join("\n")
-    });
-  }
-
-  return blocks
-    .map(b => ({
-      type: b.type,
-      content: b.content.trim()
-    }))
-    .filter(b => b.content !== "");
+  
+  // Otherwise, treat the entire string as plain text to prevent accidental notebook-style box layouts on prose questions.
+  return [{ type: "text", content: text.trim() }];
 }
 
 interface SmartQuestionTextProps {
@@ -377,7 +301,7 @@ export function SmartQuestionText({
           return (
             <p 
               key={index} 
-              className="text-slate-800 text-[15px] sm:text-[17px] font-normal leading-relaxed whitespace-pre-wrap text-left"
+              className="text-slate-800 text-[14px] sm:text-[15px] font-normal leading-relaxed whitespace-pre-wrap text-left"
               style={{ fontFamily: "Arial, Helvetica, sans-serif" }}
             >
               {block.content}

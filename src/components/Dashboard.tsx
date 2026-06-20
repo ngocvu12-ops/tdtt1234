@@ -6,25 +6,28 @@
 import React from "react";
 import { 
   Trophy, BookOpen, Award, Zap, Calendar, 
-  TrendingUp, CheckCircle2, ChevronRight, BrainCircuit 
+  TrendingUp, CheckCircle2, ChevronRight, BrainCircuit, AlertTriangle
 } from "lucide-react";
-import { Category, Question } from "../types";
+import Horse from "./HorseIcon";
+import { Category, Question, UserStats } from "../types";
 
 interface DashboardProps {
   questions: Question[];
-  stats: {
-    totalPractices: number;
-    totalExamAttempts: number;
-    correctAnswersTotal: number;
-    wrongAnswersTotal: number;
-    streakDays: number;
-    questionsSolvedIds: number[];
-  };
+  stats: UserStats;
   onNavigate: (tab: string) => void;
   onSelectCategory: (category: Category) => void;
+  bookmarkedIds: number[];
+  onToggleBookmark: (id: number) => void;
 }
 
-export default function Dashboard({ questions, stats, onNavigate, onSelectCategory }: DashboardProps) {
+export default function Dashboard({ 
+  questions, 
+  stats, 
+  onNavigate, 
+  onSelectCategory,
+  bookmarkedIds = [],
+  onToggleBookmark
+}: DashboardProps) {
   const solvedCount = stats.questionsSolvedIds.length;
   const totalCount = questions.length;
   const completionPercentage = Math.round((solvedCount / totalCount) * 100) || 0;
@@ -32,19 +35,36 @@ export default function Dashboard({ questions, stats, onNavigate, onSelectCatego
   const accuracyRate = totalAnswers > 0 ? Math.round((stats.correctAnswersTotal / totalAnswers) * 100) : 0;
 
   // Group questions by category
-  const categoriesMetaData = Object.values(Category).map((catName) => {
-    const categoryQuestions = questions.filter(q => q.category === catName);
-    const categoryTotal = categoryQuestions.length;
-    const categorySolved = categoryQuestions.filter(q => stats.questionsSolvedIds.includes(q.id)).length;
-    const progress = Math.round((categorySolved / categoryTotal) * 100) || 0;
+  const categoriesMetaData = Object.values(Category)
+    .map((catName) => {
+      const categoryQuestions = questions.filter(q => q.category === catName);
+      const categoryTotal = categoryQuestions.length;
+      const categorySolved = categoryQuestions.filter(q => stats.questionsSolvedIds.includes(q.id)).length;
+      const progress = Math.round((categorySolved / categoryTotal) * 100) || 0;
 
-    return {
-      name: catName,
-      total: categoryTotal,
-      solved: categorySolved,
-      progress
-    };
-  });
+      return {
+        name: catName,
+        total: categoryTotal,
+        solved: categorySolved,
+        progress
+      };
+    })
+    .filter((cat) => cat.total > 0);
+
+  // Streak verification logic
+  const now = Date.now();
+  const lastQuizTime = stats.lastQuizTimestamp;
+  let showStreakWarning = false;
+  let hoursRemaining = 24;
+
+  if (lastQuizTime) {
+    const elapsed = now - lastQuizTime;
+    if (elapsed >= 12 * 60 * 60 * 1000 && elapsed <= 24 * 60 * 60 * 1000) {
+      showStreakWarning = true;
+      const msRemaining = (24 * 60 * 60 * 1000) - elapsed;
+      hoursRemaining = Math.max(1, Math.round(msRemaining / (1000 * 60 * 60)));
+    }
+  }
 
   return (
     <div className="space-y-8 max-w-6xl mx-auto" id="dashboard-view">
@@ -66,7 +86,7 @@ export default function Dashboard({ questions, stats, onNavigate, onSelectCatego
           <div className="flex flex-wrap gap-4.5 pt-2">
             <button
               onClick={() => onNavigate("practice")}
-              className="bg-white text-[#1E40AF] hover:bg-[#F8FAFC] transition duration-205 px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 cursor-pointer shadow-sm active:scale-95"
+              className="bg-white text-[#1E40AF] hover:bg-[#F8FAFC] transition duration-205 px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 cursor-pointer shadow-sm active:scale-95 animate-bounce"
               id="btn-quick-practice"
             >
               <Zap size={16} /> Luyện tập ngay
@@ -81,6 +101,27 @@ export default function Dashboard({ questions, stats, onNavigate, onSelectCatego
           </div>
         </div>
       </div>
+
+      {/* Half-study Day Streak Warning Alert */}
+      {showStreakWarning && (
+        <div className="bg-rose-50 border-2 border-rose-200 text-rose-950 p-5 rounded-3xl flex flex-col sm:flex-row items-start sm:items-center gap-4.5 shadow-xs animate-pulse" id="streak-alert-banner">
+          <div className="bg-rose-500 text-white p-3 rounded-2xl shrink-0">
+            <AlertTriangle size={24} />
+          </div>
+          <div className="space-y-1 flex-1">
+            <h4 className="font-extrabold text-sm sm:text-base">⚠️ Cảnh báo nguy cơ mất chuỗi học tập (Streak)</h4>
+            <p className="text-xs text-rose-800 leading-normal font-medium">
+              Bạn đã qua 12 giờ (nửa ngày học) chưa vào làm bài quiz nào. Hãy hoàn thành ngay ít nhất 1 câu hỏi luyện tập hoặc đề thi trong <strong>{hoursRemaining} giờ tới</strong> để duy trì chuỗi, tránh bị đặt lại chuỗi ngày học từ đầu!
+            </p>
+          </div>
+          <button
+            onClick={() => onNavigate("practice")}
+            className="bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold py-2.5 px-4.5 rounded-xl transition cursor-pointer shrink-0"
+          >
+            Làm quiz ngay
+          </button>
+        </div>
+      )}
 
       {/* Metrics Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-5" id="stats-grid">
@@ -107,9 +148,9 @@ export default function Dashboard({ questions, stats, onNavigate, onSelectCatego
             <Zap size={24} />
           </div>
           <div>
-            <p className="text-[11px] text-[#64748B] font-bold uppercase tracking-wider">Chuỗi ngày học</p>
+            <p className="text-[11px] text-[#64748B] font-bold uppercase tracking-wider">Chuỗi nửa ngày học</p>
             <h3 className="text-xl sm:text-2xl font-extrabold text-[#0F172A] mt-1">
-              {stats.streakDays} <span className="text-xs text-[#64748B] font-medium">ngày liên tục</span>
+              {stats.streakDays} <span className="text-xs text-[#64748B] font-medium">chu kỳ</span>
             </h3>
             <p className="text-[10px] text-amber-600 font-bold mt-1.5 flex items-center gap-1">
               <Calendar size={10} /> Đang giữ phong độ tốt!
@@ -147,6 +188,60 @@ export default function Dashboard({ questions, stats, onNavigate, onSelectCatego
           </div>
         </div>
       </div>
+
+      {/* Bookmarked Questions Separately by Topic on Dashboard */}
+      {bookmarkedIds.length > 0 && (
+        <div className="bg-[#FFFBEB] border border-[#FDE68A] rounded-3xl p-6 sm:p-8 space-y-4 shadow-[0_4px_18px_rgba(251,191,36,0.06)]" id="dashboard-bookmarks-section">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <h2 className="text-lg sm:text-xl font-black text-amber-900 flex items-center gap-2.5">
+              <Horse className="text-amber-600 fill-amber-500/20" size={24} />
+              Bộ câu hỏi đã đánh dấu riêng theo từng chủ đề 🐴
+            </h2>
+            <button
+              onClick={() => onNavigate("study")}
+              className="text-xs text-amber-700 hover:text-amber-950 font-bold flex items-center gap-1 active:scale-95 transition bg-amber-100/50 hover:bg-amber-100 border border-amber-200 py-1.5 px-3 rounded-lg self-start sm:self-center"
+            >
+              Xem chi tiết thư viện <ChevronRight size={14} />
+            </button>
+          </div>
+          <p className="text-xs text-amber-800 leading-relaxed font-normal">
+            Dưới đây là tập hợp toàn bộ câu hỏi bạn đã đánh dấu bằng biểu tượng con ngựa, được tự động phân tách và lưu trữ riêng theo chuyên đề giúp ôn tập nhanh chóng:
+          </p>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4.5 pt-2">
+            {Object.values(Category)
+              .filter(cat => questions.some(q => q.category === cat && bookmarkedIds.includes(q.id)))
+              .map((cat, catIdx) => {
+                const catBookmarks = questions.filter(q => q.category === cat && bookmarkedIds.includes(q.id));
+                return (
+                  <div 
+                    key={catIdx}
+                    onClick={() => {
+                      onNavigate("study");
+                    }}
+                    className="bg-white p-4.5 rounded-2xl border border-amber-200/80 hover:border-amber-400 cursor-pointer shadow-xs hover:shadow-md transition duration-200 flex flex-col justify-between group"
+                  >
+                    <div>
+                      <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider bg-amber-50 px-2 py-0.5 rounded border border-amber-100">Chủ đề {catIdx + 1}</span>
+                      <h3 className="font-extrabold text-slate-800 text-sm leading-snug mt-2 group-hover:text-amber-800 transition">
+                        {cat}
+                      </h3>
+                    </div>
+                    <div className="flex items-center justify-between mt-5 pt-3 border-t border-slate-50">
+                      <span className="text-xs font-bold text-amber-800 bg-amber-100/50 border border-amber-200/40 px-3 py-1 rounded-lg flex items-center gap-1">
+                        <Horse size={12} className="text-amber-600 fill-amber-500/20 shadow-xs" />
+                        {catBookmarks.length} câu đã lưu
+                      </span>
+                      <div className="flex items-center text-xs text-amber-600 font-bold group-hover:translate-x-1.5 transition-transform">
+                        Rà soát ngay <ChevronRight size={12} className="ml-0.5" />
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      )}
 
       {/* Main Grid: Categories vs Info banner */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8" id="dashboard-content">

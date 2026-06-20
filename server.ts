@@ -19,8 +19,8 @@ app.use(express.json());
 // Initialize Gemini SDK with telemetry header per guidelines
 const getGeminiClient = () => {
   const apiKey = process.env.GEMINI_API_KEY;
-  if (!apiKey) {
-    throw new Error("GEMINI_API_KEY is not defined in environments");
+  if (!apiKey || apiKey.trim() === "" || apiKey === "MY_GEMINI_API_KEY") {
+    throw new Error("Khóa API Gemini chưa được cấu hình. Vui lòng thêm GEMINI_API_KEY thiết lập dưới Settings > Secrets.");
   }
   return new GoogleGenAI({
     apiKey: apiKey,
@@ -93,8 +93,19 @@ Yêu cầu giải thích:
     res.json({ explanation: explanationText });
   } catch (error: any) {
     console.error("Gemini API Error:", error);
+    const errMessage = error.message || String(error);
+    const isUnauthenticated = errMessage.includes("401") ||
+                              errMessage.toUpperCase().includes("UNAUTHENTICATED") ||
+                              errMessage.includes("auth") ||
+                              errMessage.includes("credentials");
+    
+    let friendlyMessage = `Lỗi khi kết nối với AI: ${errMessage}`;
+    if (isUnauthenticated) {
+      friendlyMessage = "Không thể kết nối với AI do API Key chưa được cấu hình chính xác hoặc không hợp lệ. Vui lòng truy cập Settings > Secrets trong giao diện AI Studio để thiết lập GEMINI_API_KEY hợp lệ, sau đó tải lại trang câu hỏi.";
+    }
+    
     res.status(500).json({
-      error: `Lỗi khi kết nối với AI: ${error.message || error}`,
+      error: friendlyMessage,
     });
   }
 });
